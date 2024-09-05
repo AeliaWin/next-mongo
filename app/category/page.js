@@ -4,12 +4,13 @@ import { useForm } from "react-hook-form";
 import Link from "next/link";
 
 export default function Home() {
-  const [category, setCategory] = useState([]);
+  const [categoryList, setCategoryList] = useState([]);
   const { register, handleSubmit } = useForm();
+
   async function fetchCategory() {
     const data = await fetch("https://next-mongo-olive.vercel.app/api/category");
     const c = await data.json();
-    setCategory(c);
+    setCategoryList(c);
   }
 
   useEffect(() => {
@@ -49,8 +50,8 @@ export default function Home() {
         </div>
       </form>
       <div>
-        <h1>Category {category.length}</h1>
-        {category.map((category) => (
+        <h1>Category ({categoryList.length})</h1>
+        {categoryList.map((category) => (
           <div key={category._id}>
             <Link href={`/product/category/${category._id}`} className="text-red-600">
               {category.name}

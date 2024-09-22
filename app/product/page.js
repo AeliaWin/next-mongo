@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
+import { DataGrid } from "@mui/x-data-grid"
+import { Button } from "@mui/material";
 
 export default function Home() {
   const { register, handleSubmit, reset } = useForm();
@@ -10,10 +12,32 @@ export default function Home() {
   const [editMode,setEditMode] = useState(false);
   // const [currentProductId,setCurrentProductId] = useState(null);
 
+  const columns = [
+    { field: 'name', headerName: 'Name', width: 100},
+    {field: 'description', headerName: 'Description', width: 200},
+    {
+      field: 'edit', headerName: 'Edit', width:100,
+      renderCell: (params)=> 
+        
+        <button 
+              onClick={()=> startEditMode(params.row)}
+              className='border bordery-gray-700 px-1 m-1'>🖋️</button>
+      },
+    {
+      field: 'delete', headerName: 'Delete', width: 100,
+      renderCell: (params) =>
+        <button className="border border-black p-1/2" onClick={deleteById(params.row.id)}>❌</button>
+    }
+  ]
+
   async function fetchProducts() {
     const data = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/product`);
     const p = await data.json();
-    setProducts(p);
+    const p2 = p.map((product)=>{
+      product.id = product._id;
+      return product
+    })
+    setProducts(p2);
   }
 
   async function fetchCategory() {
@@ -161,9 +185,15 @@ export default function Home() {
           </div>
         </form>
       </div>
-      <div className="border m-4 bg-slate-300 flex-1 w-64">
+      <div className="border m-4 bg-slate-300 flex-1 w-100">
         <h1 className="text-2xl">Products ({products.length})</h1>
-        <ul className="list-disc ml-8">
+        <div className="mx-4 border boreder-gray-600">
+          <DataGrid 
+          columns={columns} 
+          rows={products}/>
+
+        </div>
+        {/* <ul className="list-disc ml-8">
           {
             products.map((p) => (
               <li key={p._id}>
@@ -177,7 +207,7 @@ export default function Home() {
                 - {p.description}
               </li>
             ))}
-        </ul>
+        </ul> */}
       </div>
     </div>
   );

@@ -2,16 +2,35 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
+import { DataGrid } from "@mui/x-data-grid"
+import { Button } from "@mui/material";
 
 export default function Home() {
   const [categoryList, setCategoryList] = useState([]);
   const { register, handleSubmit, reset } = useForm();
   const [editMode, setEditMode] = useState(false);
 
+  const columns = [
+    { field: 'name', headerName: 'Category', width: 200},
+    {field: 'order', headerName: 'Order', width: 100},
+    {
+      field: 'edit', headerName: 'Edit', width:100,
+      renderCell: (params)=> 
+        
+        <button 
+              onClick={()=> startEditMode(params.row)}
+              className='border bordery-gray-700 px-1 m-1'>🖋️</button>
+      }
+  ];
+
   async function fetchCategory() {
     const data = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/category`);
     const c = await data.json();
-    setCategoryList(c);
+    const c2 = c.map((cateory)=>{
+      cateory.id = cateory._id;
+      return cateory
+    })
+    setCategoryList(c2);
   }
 
   useEffect(() => {
@@ -112,7 +131,13 @@ export default function Home() {
       </form>
       <div>
         <h1>Category ({categoryList.length})</h1>
-        <ul>
+        <div className="mx-4 border boreder-gray-600">
+          <DataGrid 
+          columns={columns} 
+          rows={categoryList}/>
+
+        </div>
+        {/* <ul>
           {categoryList.map((category) => (
             <li key={category._id}>
               <button 
@@ -123,7 +148,7 @@ export default function Home() {
               </Link>
             </li>
           ))}
-        </ul>
+        </ul> */}
       </div>
     </main>
   );

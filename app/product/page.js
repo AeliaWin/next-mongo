@@ -4,9 +4,11 @@ import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, reset } = useForm();
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState([]);
+  const [editMode,setEditMode] = useState(false);
+  // const [currentProductId,setCurrentProductId] = useState(null);
 
   async function fetchProducts() {
     const data = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/product`);
@@ -21,7 +23,19 @@ export default function Home() {
   }
 
   const createProduct = (data) => {
-    fetch("NEXT_PUBLIC_API_BASE/product", {
+    if(editMode){
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE}/product`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }).then(() => {
+        stopEditMode()
+        fetchProducts()});
+
+    }
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE}/product`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -37,6 +51,25 @@ export default function Home() {
       method: "DELETE",
     });
     fetchProducts();
+  }
+
+  function startEditMode(product){
+    reset(product)
+    // setCurrentProductId(product._id)
+    setEditMode(true)
+
+  }
+
+  function stopEditMode(){
+    reset({
+      code: '',
+      name: '',
+      description: '',
+      price: '',
+      category: ''
+    })
+
+    setEditMode(false)
   }
 
   useEffect(() => {
@@ -97,11 +130,33 @@ export default function Home() {
               </select>
             </div>
             <div className="col-span-2">
+            {editMode ? 
+              <>
+              <input
+              type="submit"
+              value="Update"
+              className="italic bg-blue-800 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+              /> 
+              {' '}
+              <button onClick={()=> {
+              // reset({
+              //   name: '',
+              //   order: ''
+              // })
+              // setEditMode(false)
+              stopEditMode()
+
+              }}
+              className='italic bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full'>
+              Cancel</button>
+              </>
+            : 
               <input
                 type="submit"
                 value="Add"
-                className="bg-blue-800 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                className="bg-green-800 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full"
               />
+            }
             </div>
           </div>
         </form>
@@ -112,6 +167,9 @@ export default function Home() {
           {
             products.map((p) => (
               <li key={p._id}>
+                <button 
+                onClick={()=> startEditMode(p)}
+                className='border bordery-gray-700 px-1 m-1'>🖋️</button>
                 <button className="border border-black p-1/2" onClick={deleteById(p._id)}>❌</button>{' '}
                 <Link href={`/product/${p._id}`} className="font-bold">
                   {p.name}
